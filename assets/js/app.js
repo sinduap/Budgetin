@@ -15,15 +15,25 @@ var budgetController = (function () {
         this.value = value
     };
 
+    var calculateTotal = function(type) {
+        var sum = 0;
+        data.allItems[type].forEach(function(cur) {
+            sum += cur.value;
+            data.totals[type] = sum;
+        });
+    };
+
     var data = {
         allItems: {
             exp: [],
             inc: []
         },
-        total: {
+        totals: {
             exp: 0,
             inc: 0
-        }
+        },
+        budget: 0,
+        percentage: -1
     }
 
     return {
@@ -49,6 +59,30 @@ var budgetController = (function () {
             // return
             return newItem;
         },
+
+        calculateBudget: function() {
+            // Hitung total pemasukan dan pengeluaran
+            calculateTotal('exp');
+            calculateTotal('inc');
+            // Hitung budget: income - expenses
+            data.budget = data.totals.inc - data.totals.exp;
+            // Hitung presentase income
+            if (data.totals.inc > 0) {
+                data.percentage = Math.round((data.totals.exp / data.totals.inc) * 100);
+            } else {
+                data.percentage = -1
+            }
+        },
+
+        getBudget: function() {
+            return {
+                budget: data.budget,
+                income: data.totals.inc,
+                expense: data.totals.exp,
+                percentage: data.percentage
+            }
+        },
+
         testing: function() {
             console.log(data);
         }
@@ -72,7 +106,7 @@ var UIController = (function () {
             return {
                 type: document.querySelector(DOMStrings.inputType).value, // either inc or exp
                 description: document.querySelector(DOMStrings.inputDescription).value,
-                value: document.querySelector(DOMStrings.inputValue).value
+                value: parseFloat(document.querySelector(DOMStrings.inputValue).value)
             }
         },
 
@@ -89,17 +123,30 @@ var UIController = (function () {
                 html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             }
             // Replace placeholder text dengan data aktual
-            console.log(html, element);
             newHtml = html.replace('%id%', obj.id);
             newHtml = newHtml.replace('%description%', obj.description);
             newHtml = newHtml.replace('%value%', obj.value);
 
-            // Masukkan HTML pada DOM
+            // Masukkan template HTML ke DOM
             document.querySelector(element).insertAdjacentHTML('beforeend', newHtml);
         },
 
         getDOMStrings: function () {
             return DOMStrings;
+        },
+
+        clearFields: function() {
+            var fields;
+            // var fieldsArr;
+            fields = document.querySelectorAll(DOMStrings.inputDescription + ', ' + DOMStrings.inputValue);
+
+            // fieldsArr = Array.prototype.slice.call(fields);
+            fields.forEach(function(item, index, arr) {
+                item.value = '';
+            });
+
+            // fieldsArr[0].focus();
+            fields[0].focus();
         }
     };
 })();
@@ -109,7 +156,7 @@ var UIController = (function () {
 var controller = (function (budgetCtrl, UICtrl) {
     //code
     var setupEventListeners = function () {
-        var DOM = UIController.getDOMStrings();
+        var DOM = UICtrl.getDOMStrings();
 
         document.querySelector(DOM.inputBtn).addEventListener('click', ctrlAddItem);
 
@@ -120,19 +167,32 @@ var controller = (function (budgetCtrl, UICtrl) {
         });
     };
 
+    var updateBudget = function() {
+        // 1. Hitung Budget
+        budgetCtrl.calculateBudget();
+        // 2. Return Budget
+        var budget = budgetCtrl.getBudget();
+        console.log(budget);
+        // 3. Tampilkan budget ke UI
+    };
+
     // function ketika tombol enter ditekan atau add__btn diklik
     var ctrlAddItem = function () {
         // 1. Tangkap input data pada aplikasi
         var input, newItem;
-        input = UIController.getInput();
-        // console.log(input);
-        // 2. Tambahkan item kedalam budget controller
-        newItem = budgetController.addItem(input.type, input.description, input.value);
-        budgetController.testing();
-        // 3. Tampilkan item ke UI
-        UIController.addListItem(newItem, input.type);
-        // 4. Hitung
-        // 5. Tampilkan budget ke UI
+        input = UICtrl.getInput();
+        // Mencegah input tidak sesuai
+        if (input.description !== '' && !isNaN(input.value) && input.value > 0) {
+            // 2. Tambahkan item kedalam budget controller
+            newItem = budgetCtrl.addItem(input.type, input.description, input.value);
+            budgetController.testing();
+            // 3. Tampilkan item ke UI
+            UICtrl.addListItem(newItem, input.type);
+            // 4. Bersihkan input
+            UICtrl.clearFields();
+            // 5. Hitung dan update budget
+            updateBudget();
+        }        
     };
 
     return {
