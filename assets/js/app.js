@@ -99,7 +99,11 @@ var UIController = (function () {
         inputValue: '.add__value',
         inputBtn: '.add__btn',
         incomeContainer: '.income__list',
-        expensesContainer: '.expenses__list'
+        expensesContainer: '.expenses__list',
+        budgetLabel: '.budget__value',
+        incomeLabel: '.budget__income--value',
+        expenseLabel: '.budget__expenses--value',
+        percentageLabel: '.budget__expenses--percentage'
     }
     return {
         getInput: function () {
@@ -135,14 +139,25 @@ var UIController = (function () {
             return DOMStrings;
         },
 
+        displayBudget : function(obj) {
+            document.querySelector(DOMStrings.budgetLabel).textContent = obj.budget;
+            document.querySelector(DOMStrings.incomeLabel).textContent = obj.income;
+            document.querySelector(DOMStrings.expenseLabel).textContent = obj.expense;
+            if (obj.percentage > 0) {
+                document.querySelector(DOMStrings.percentageLabel).textContent = obj.percentage + ' %';
+            } else {
+                document.querySelector(DOMStrings.percentageLabel).textContent = '---';
+            }
+        },
+
         clearFields: function() {
             var fields;
             // var fieldsArr;
             fields = document.querySelectorAll(DOMStrings.inputDescription + ', ' + DOMStrings.inputValue);
 
             // fieldsArr = Array.prototype.slice.call(fields);
-            fields.forEach(function(item, index, arr) {
-                item.value = '';
+            fields.forEach(function(cur, index, arr) {
+                cur.value = '';
             });
 
             // fieldsArr[0].focus();
@@ -174,6 +189,7 @@ var controller = (function (budgetCtrl, UICtrl) {
         var budget = budgetCtrl.getBudget();
         console.log(budget);
         // 3. Tampilkan budget ke UI
+        UICtrl.displayBudget(budget);
     };
 
     // function ketika tombol enter ditekan atau add__btn diklik
