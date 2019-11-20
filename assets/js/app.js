@@ -206,6 +206,25 @@ var UIController = (function () {
             });
         },
 
+        formatNumber: function(num, type) {
+            var numSplit, int, dec;
+            /* 
+            + atau - sebelum angka 
+            2 desimal
+            koma pada tiap ribuan
+            contoh: inc 23456.3474 --> + 23,456.35
+            */
+            num = Math.abs(num);
+            num = num.toFixed(2);
+            numSplit = num.split('.');
+            int = numSplit[0];
+            dec = numSplit[1];
+
+            if (int.length > 3) {
+                int.substr()
+            }
+        },
+
         getDOMStrings: function () {
             return DOMStrings;
         },
