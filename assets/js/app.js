@@ -17,10 +17,14 @@ var budgetController = (function () {
 
     var calculateTotal = function(type) {
         var sum = 0;
-        data.allItems[type].forEach(function(cur) {
-            sum += cur.value;
+        if (data.allItems[type].length === 0) {
             data.totals[type] = sum;
-        });
+        } else {
+            data.allItems[type].forEach(function(cur) {
+                sum += cur.value;
+                data.totals[type] = sum;
+            });
+        }
     };
 
     var data = {
@@ -58,6 +62,20 @@ var budgetController = (function () {
 
             // return
             return newItem;
+        },
+
+        deleteItem: function(type, id) {
+            // id 1
+            var ids, index;
+            ids = data.allItems[type].map(function(current) {
+                return current.id;
+            });
+
+            index = ids.indexOf(id);
+
+            if (index !== -1) {
+                data.allItems[type].splice(index, 1);
+            }
         },
 
         calculateBudget: function() {
@@ -136,6 +154,11 @@ var UIController = (function () {
             document.querySelector(element).insertAdjacentHTML('beforeend', newHtml);
         },
 
+        deleteListItem: function(selectorId) {
+            var el;
+            el = document.getElementById(selectorId).remove();
+        },
+
         getDOMStrings: function () {
             return DOMStrings;
         },
@@ -195,6 +218,12 @@ var controller = (function (budgetCtrl, UICtrl) {
         UICtrl.displayBudget(budget);
     };
 
+    var updatePercentages = function() {
+        // 1. Hitung persentase
+        // 2. Baca persentase dari budget controller
+        // 3. Update UI dengan persentase baru
+    };
+
     // function ketika tombol enter ditekan atau add__btn diklik
     var ctrlAddItem = function () {
         // 1. Tangkap input data pada aplikasi
@@ -211,6 +240,8 @@ var controller = (function (budgetCtrl, UICtrl) {
             UICtrl.clearFields();
             // 5. Hitung dan update budget
             updateBudget();
+            // 6. Hitung dan update persentase
+            updatePercentages();
         }        
     };
 
@@ -222,10 +253,15 @@ var controller = (function (budgetCtrl, UICtrl) {
             // inc-1
             splitID = itemID.split('-');
             type = splitID[0];
-            ID = splitID[1];
+            ID = parseInt(splitID[1]);
             // 1. Hapus item dari struktur data
+            budgetController.deleteItem(type, ID);
             // 2. Hapus item dari UI
+            UIController.deleteListItem(itemID);
             // 3. Perbarui dan tampilkan budget baru
+            updateBudget();
+            // 4. Perbarui dan update persentase
+            updatePercentages();
         } 
     };
 
