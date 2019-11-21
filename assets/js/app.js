@@ -252,10 +252,12 @@ var UIController = (function () {
         },
 
         displayMonth: function() {
-            var now, year;
+            var now, month, months, month, year;
             now = new Date();
             year = now.getFullYear();
-            document.querySelector(DOMStrings.dateLabel).textContent = year;
+            month = now.getMonth();
+            months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            document.querySelector(DOMStrings.dateLabel).textContent = months[month] + year;
         },
 
         clearFields: function() {
