@@ -1,4 +1,4 @@
-// MODULS
+// 3 MAIN MODULS
 
 // BUDGET CONTROLLLER
 var budgetController = (function () {
@@ -150,7 +150,36 @@ var UIController = (function () {
         expenseLabel: '.budget__expenses--value',
         percentageLabel: '.budget__expenses--percentage',
         container: '.container',
-        expensesPercLabel: '.item__percentage'
+        expensesPercLabel: '.item__percentage',
+        dateLabel: '.budget__title--month'
+    };
+
+    var formatNumber = function(num, type) {
+        var numSplit, int, dec;
+        /* 
+        + atau - sebelum angka 
+        2 desimal
+        koma pada tiap ribuan
+        contoh: inc 23456.3474 --> + 23,456.35
+        */
+        num = Math.abs(num);
+        console.log(num);
+        num = num.toFixed(2);
+        console.log(num);
+        numSplit = num.split('.');
+        int = numSplit[0];
+        dec = numSplit[1];
+        console.log(dec);
+
+        if (int.length > 9) {
+            int = int.substr(0, int.length - 9) + ',' + int.substr(int.length - 9, int.length - 6) + ',' + int.substr(int.length - 6, int.length - 3) + ',' + int.substr(int.length - 3, int.length);
+        } else if (int.length > 6) {
+            int = int.substr(0, int.length - 6) + ',' + int.substr(int.length - 6, int.length - 3) + ','  + int.substr(int.length - 3, int.length);
+        } else if (int.length > 3) {
+            int = int.substr(0, int.length - 3) + ',' + int.substr(int.length - 3, int.length);
+        }
+
+        return (type === 'exp' ? '-' : '+') + ' ' + int + '.' + dec;
     };
 
     return {
@@ -177,7 +206,7 @@ var UIController = (function () {
             // Replace placeholder text dengan data aktual
             newHtml = html.replace('%id%', obj.id);
             newHtml = newHtml.replace('%description%', obj.description);
-            newHtml = newHtml.replace('%value%', obj.value);
+            newHtml = newHtml.replace('%value%', formatNumber(obj.value, type));
 
             // Masukkan template HTML ke DOM
             document.querySelector(element).insertAdjacentHTML('beforeend', newHtml);
@@ -206,38 +235,27 @@ var UIController = (function () {
             });
         },
 
-        formatNumber: function(num, type) {
-            var numSplit, int, dec;
-            /* 
-            + atau - sebelum angka 
-            2 desimal
-            koma pada tiap ribuan
-            contoh: inc 23456.3474 --> + 23,456.35
-            */
-            num = Math.abs(num);
-            num = num.toFixed(2);
-            numSplit = num.split('.');
-            int = numSplit[0];
-            dec = numSplit[1];
-
-            if (int.length > 3) {
-                int.substr()
-            }
-        },
-
         getDOMStrings: function () {
             return DOMStrings;
         },
 
         displayBudget : function(obj) {
-            document.querySelector(DOMStrings.budgetLabel).textContent = obj.budget;
-            document.querySelector(DOMStrings.incomeLabel).textContent = obj.income;
-            document.querySelector(DOMStrings.expenseLabel).textContent = obj.expense;
+            obj.budget >= 0 ? type = 'inc' : type = 'exp';
+            document.querySelector(DOMStrings.budgetLabel).textContent = formatNumber(obj.budget, type);
+            document.querySelector(DOMStrings.incomeLabel).textContent = formatNumber(obj.income, type);
+            document.querySelector(DOMStrings.expenseLabel).textContent = formatNumber(obj.expense, type);
             if (obj.percentage > 0) {
                 document.querySelector(DOMStrings.percentageLabel).textContent = obj.percentage + ' %';
             } else {
                 document.querySelector(DOMStrings.percentageLabel).textContent = '---';
             }
+        },
+
+        displayMonth: function() {
+            var now, year;
+            now = new Date();
+            year = now.getFullYear();
+            document.querySelector(DOMStrings.dateLabel).textContent = year;
         },
 
         clearFields: function() {
@@ -337,6 +355,7 @@ var controller = (function (budgetCtrl, UICtrl) {
 
     return {
         init: function() {
+            UIController.displayMonth();
             console.log('Application has started.');
             setupEventListeners();
         }
